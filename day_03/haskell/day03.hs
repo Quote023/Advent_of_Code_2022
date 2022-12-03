@@ -38,4 +38,4 @@ main =
   >>= return . parseBags
   >>= \bags 
     -> print ("1 ",(sum . map priority . repeatedItems $ bags)) 
-    >> print ("2 ",(sum . map priority . map (head . foldr1 intersect) . map (map flattenBag) $ chunkBy 3 bags))
+    >> print ("2 ",(sum . map priority . map (head . foldr1 intersect) . chunkBy 3 $ map flattenBag bags ))
