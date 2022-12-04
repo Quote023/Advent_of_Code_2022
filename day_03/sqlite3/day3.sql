@@ -29,34 +29,18 @@ CREATE TEMP VIEW priorities AS
     ON l.id = r.id AND l.side != r.side AND l.letter = r.letter
     GROUP BY l.id;
 
-CREATE TEMP VIEW groups AS 
-  SELECT i1,i2,i3
-  FROM (
-      SELECT
-          ROWID as id,
-          items as i1,
-          LAG(items,1) OVER () as i2,
-          LAG(items,2) OVER () as i3
-      FROM input)
-  WHERE id % 3 = 0;
-
-
-
-
 SELECT '1º ',SUM(priority) FROM priorities;
 
-DROP VIEW IF EXISTS groups;
-CREATE TEMP VIEW groups AS
+CREATE TEMP VIEW elf_groups AS
 SELECT
     ROWID,
     ((ROWID - 1) / 3) + 1 as gr,
     items
 FROM input;
 
-DROP VIEW IF EXISTS letters2;
 CREATE TEMP VIEW letters2 AS
     WITH RECURSIVE letters2(id,gr,pos,letter) AS (
-        SELECT 1,b.gr, 1, substr(b.items,1,1) FROM groups b WHERE ROWID = 1
+        SELECT 1,b.gr, 1, substr(b.items,1,1) FROM elf_groups b WHERE ROWID = 1
         UNION ALL
         SELECT
             CASE WHEN pos >= LENGTH(b.items)  THEN l.id + 1 ELSE l.id END,
@@ -64,12 +48,11 @@ CREATE TEMP VIEW letters2 AS
             CASE WHEN pos >= LENGTH(b.items)  THEN 0 ELSE pos + 1 END,
             CASE WHEN pos >= LENGTH(b.items)  THEN NULL ELSE substr(b.items,pos + 1,1) END
         FROM letters2 l
-        JOIN groups b
+        JOIN elf_groups b
         ON l.id == b.ROWID
     )
     SELECT  * FROM letters2 WHERE letter IS NOT NULL;
 
-DROP VIEW IF EXISTS badges;
 CREATE TEMP VIEW badges AS
     SELECT
         i1.letter,
